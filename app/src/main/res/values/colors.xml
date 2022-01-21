@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#0c8c99</color>
+    <color name="colorPrimaryDark">#095b4c</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="white">#FFF</color>
+    <color name="whiteOpacity">#BFFFFFFF</color>
+    <color name="blackOpacity">#40095b4c</color>
+
+    <color name="colorBackground">#F0F0F0</color>
+    <color name="colorCardBackground">#FFFFFF</color>
+    <color name="colorTitle60">#99000000</color>
+    <color name="colorNumber">#000000</color>
+    <color name="colorBtnBackground">#FFFFFF</color>
+
+    //
+    <color name="lightYellow">#F8D40B</color>
+    <color name="lightOrange">#EB6808</color>
+    <color name="lightFury">#1A1B1C</color>
+</resources>

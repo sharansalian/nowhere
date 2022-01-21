@@ -1,0 +1,67 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'dagger.hilt.android.plugin'
+apply plugin:  'kotlin-kapt'
+
+
+android {
+    compileSdkVersion 31
+    defaultConfig {
+        applicationId "io.sharan.nowhere"
+        minSdkVersion 19
+        targetSdkVersion 31
+        versionCode 5
+        versionName "1.0.4"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        vectorDrawables.useSupportLibrary = true
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.4.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
+
+    def lottieVersion = "3.4.0"
+    implementation "com.airbnb.android:lottie:$lottieVersion"
+
+    implementation 'com.google.android.material:material:1.2.0-alpha06'
+
+    implementation platform('com.google.firebase:firebase-bom:29.0.3')
+
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+
+    def hiltVersion = '2.40.5'
+    def hiltAndroidXVersion = '1.0.0-alpha01'
+
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.38.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.38.1")
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation "com.nhaarman:mockito-kotlin:1.5.0"
+    testImplementation "org.mockito:mockito-inline:2.13.0"
+    testImplementation 'org.amshove.kluent:kluent-android:1.36'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+
+}
+
+
+apply plugin: 'com.google.gms.google-services'
