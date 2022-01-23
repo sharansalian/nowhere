@@ -9,19 +9,15 @@ import android.os.CountDownTimer
 import android.os.Vibrator
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ArrayAdapter
-import android.widget.Button
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.sharan.nowhere.R
 import dagger.hilt.android.AndroidEntryPoint
 import io.sharan.nowhere.data.Config
 import io.sharan.nowhere.data.analytics.EventLogger
 import io.sharan.nowhere.data.analytics.EventsCreator
-import io.sharan.nowhere.data.analytics.TrackingEvent
 import kotlinx.android.synthetic.main.activity_breathe.*
 import javax.inject.Inject
 
@@ -113,7 +109,7 @@ class BreatheActivity : AppCompatActivity(), BreatheContract.View {
         soundId = soundPool.load(this, R.raw.ding, 1)
 
         // Create the presenter.
-        BreathePresenter(this)
+        BreatheViewModel(this)
         presenter.start()
 
     }

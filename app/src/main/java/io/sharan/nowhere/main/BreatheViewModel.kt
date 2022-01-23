@@ -1,10 +1,11 @@
 package io.sharan.nowhere.main
 
 import androidx.annotation.Keep
+import androidx.lifecycle.ViewModel
 import io.sharan.nowhere.data.Config
 
 @Keep
-class BreathePresenter(private val view: BreatheContract.View) : BreatheContract.Presenter {
+class BreatheViewModel(private val view: BreatheContract.View) : ViewModel(), BreatheContract.Presenter {
 
     init {
         view.setPresenter(this)
