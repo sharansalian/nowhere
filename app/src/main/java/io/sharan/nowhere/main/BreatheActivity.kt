@@ -11,21 +11,25 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.ArrayAdapter
+import androidx.activity.viewModels
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.sharan.nowhere.R
 import dagger.hilt.android.AndroidEntryPoint
 import io.sharan.nowhere.data.Config
 import io.sharan.nowhere.data.analytics.EventLogger
 import io.sharan.nowhere.data.analytics.EventsCreator
 import kotlinx.android.synthetic.main.activity_breathe.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 @Keep
-class BreatheActivity : AppCompatActivity(), BreatheContract.View {
+class BreatheActivity : AppCompatActivity() {
 
-    private lateinit var presenter: BreatheContract.Presenter
+    private val viewModel: BreatheViewModel by viewModels()
     private var breathing: Boolean = false
     private var config: Config = Config()
     private lateinit var vibrator: Vibrator
@@ -42,6 +46,62 @@ class BreatheActivity : AppCompatActivity(), BreatheContract.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_breathe)
+
+
+        lifecycleScope.launch {
+            viewModel.eventFlow.collect { event ->
+                when (event) {
+                    BreatheEvent.HideConfiguration -> {
+                        spinner_minutes.visibility = View.INVISIBLE
+                    }
+                    is BreatheEvent.LoadConfiguration -> {
+                        val adapter =
+                            ArrayAdapter(this@BreatheActivity, R.layout.spinner_item, event.list)
+                        spinner_minutes.adapter = adapter
+                    }
+                    BreatheEvent.ShowConfiguration -> {
+                        spinner_minutes.visibility = View.VISIBLE
+                    }
+                    BreatheEvent.StartAnimation -> {
+                        // Breathing has started.
+                        breathing = true
+                        animationView.playAnimation()
+                    }
+                    BreatheEvent.StartTimer -> {
+                        timer =
+                            object : CountDownTimer((config.minutes * 60 * 1000).toLong(), 1000) {
+                                override fun onFinish() {
+                                    viewModel.stopBreathing()
+                                    eventLogger.logCustomEvent(
+                                        eventsCreator.getCustomEvent(
+                                            EventsCreator.HALE_FINISH_EVENT,
+                                            EventsCreator.Screen.HOME_SCREEN
+                                        )
+                                    )
+
+
+                                }
+
+                                override fun onTick(millisUntilFinished: Long) {
+
+                                }
+                            }.start()
+                    }
+                    BreatheEvent.StopAnimation -> {
+                        // Stop breathing.
+                        breathing = false
+                        // Show configuration.
+
+                        // End lottie
+                        animationView.pauseAnimation()
+                    }
+                    BreatheEvent.StopTimer -> {
+                        timer.cancel()
+                    }
+                }
+            }
+        }
+
 
         // Prevent phone from going to sleep.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -97,7 +157,7 @@ class BreatheActivity : AppCompatActivity(), BreatheContract.View {
                     1 -> config.minutes = 19.0
                     2 -> config.minutes = 38.0
                 }
-                presenter.startBreathing(config)
+                viewModel.startBreathing()
             }
         }
 
@@ -108,82 +168,23 @@ class BreatheActivity : AppCompatActivity(), BreatheContract.View {
         soundPool = SoundPool(5, AudioManager.STREAM_MUSIC, 0)
         soundId = soundPool.load(this, R.raw.ding, 1)
 
-        // Create the presenter.
-        BreatheViewModel(this)
-        presenter.start()
+        viewModel.start()
 
     }
 
     override fun onPause() {
         super.onPause()
         if (breathing) {
-            presenter.stopBreathing()
+            viewModel.stopBreathing()
         }
     }
 
     override fun onBackPressed() {
         if (breathing) {
-            presenter.stopBreathing()
+            viewModel.stopBreathing()
         } else {
             super.onBackPressed()
         }
-    }
-
-    override fun setPresenter(presenter: BreatheContract.Presenter) {
-        this.presenter = presenter
-    }
-
-    override fun loadConfiguration(list: ArrayList<String>) {
-        val adapter = ArrayAdapter(this, R.layout.spinner_item, list)
-        spinner_minutes.adapter = adapter
-    }
-
-    override fun showConfiguration() {
-        spinner_minutes.visibility = View.VISIBLE
-    }
-
-    override fun hideConfiguration() {
-        spinner_minutes.visibility = View.INVISIBLE
-    }
-
-    override fun startAnimation() {
-        // Breathing has started.
-        breathing = true
-        animationView.playAnimation()
-    }
-
-    override fun startTimer() {
-        timer = object : CountDownTimer((config.minutes * 60 * 1000).toLong(), 1000) {
-            override fun onFinish() {
-                presenter.stopBreathing()
-                eventLogger.logCustomEvent(
-                    eventsCreator.getCustomEvent(
-                        EventsCreator.HALE_FINISH_EVENT,
-                        EventsCreator.Screen.HOME_SCREEN
-                    )
-                )
-
-
-            }
-
-            override fun onTick(millisUntilFinished: Long) {
-
-            }
-        }.start()
-    }
-
-    override fun stopTimer() {
-        timer.cancel()
-    }
-
-    override fun stopAnimation() {
-        // Stop breathing.
-        breathing = false
-        // Show configuration.
-        showConfiguration()
-        // End lottie
-        animationView.pauseAnimation()
-
     }
 
     private fun performSound() {

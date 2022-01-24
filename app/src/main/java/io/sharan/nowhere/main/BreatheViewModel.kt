@@ -2,16 +2,19 @@ package io.sharan.nowhere.main
 
 import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.sharan.nowhere.data.Config
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @Keep
-class BreatheViewModel(private val view: BreatheContract.View) : ViewModel(), BreatheContract.Presenter {
+@HiltViewModel
+class BreatheViewModel @Inject constructor() : ViewModel() {
 
-    init {
-        view.setPresenter(this)
-    }
-
-    override fun start() {
+    fun start() = viewModelScope.launch {
         // Create list for times.
         val list = ArrayList<String>()
         list.add("30 times")
@@ -19,23 +22,22 @@ class BreatheViewModel(private val view: BreatheContract.View) : ViewModel(), Br
         list.add("120 times")
 
         // Load configuration values.
-        view.loadConfiguration(list)
+        eventChannel.send(BreatheEvent.LoadConfiguration(list))
     }
 
-    override fun startBreathing(config: Config) {
-        // Hide configuration.
-        view.hideConfiguration()
-        // Start animation.
-        view.startAnimation()
-        // Start timer.
-        view.startTimer()
+    fun startBreathing() = viewModelScope.launch {
+        eventChannel.send(BreatheEvent.HideConfiguration)
+        eventChannel.send(BreatheEvent.StartAnimation)
+        eventChannel.send(BreatheEvent.StartTimer)
     }
 
-    override fun stopBreathing() {
-        // Stop timer.
-        view.stopTimer()
-        // Stop animation.
-        view.stopAnimation()
+    fun stopBreathing() = viewModelScope.launch {
+        eventChannel.send(BreatheEvent.StopTimer)
+        eventChannel.send(BreatheEvent.StopAnimation)
+        eventChannel.send(BreatheEvent.ShowConfiguration)
     }
+
+    private val eventChannel = Channel<BreatheEvent>()
+    val eventFlow = eventChannel.receiveAsFlow()
 
 }
